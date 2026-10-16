@@ -210,7 +210,7 @@ rtcsync
 
 
 
-### 实验
+### 服务器
 
 
 
@@ -245,7 +245,7 @@ rtcsync
 ————————————————————————————————————————————————————————————————————————————————————————————————————
 # Use public servers from the pool.ntp.org project.
 # Please consider joining the pool (https://www.pool.ntp.org/join.html).
-pool 192.168.44.99 iburst
+pool 192.168.44.99 iburst ——————————————————————————————————————————————————————服务器的IP地址，其他什么都不需要
 
 # Use NTP servers from DHCP.
 sourcedir /run/chrony-dhcp
@@ -279,7 +279,7 @@ rtcsync
 
 ```
 
-
+<img src="C:/Users/xgz24/AppData/Roaming/Typora/typora-user-images/image-20261016084403963.png" alt="image-20261016084403963" style="zoom:67%;" />
 
 
 
@@ -290,9 +290,9 @@ rtcsync
 *   服务器
 
 ```
-[root@192 ~]# dnf install chrony -y
-[root@192 ~]# systemctl enable --now chronyd
-[root@192 ~]# systemctl status chronyd
+[root@192 ~]# dnf install chrony -y ——————————————————————————————————————————————下载并安装
+[root@192 ~]# systemctl enable --now chronyd —————————————————————————————————————开机自启并现在启动
+[root@192 ~]# systemctl status chronyd ———————————————————————————————————————————查看chrony运行状态
 
 [root@192 ~]# vim /etc/chrony.conf
 
@@ -330,8 +330,83 @@ local stratum 10 —————————————————————
 
 ————————————————————————————————————————————————————————————————————————————————————————————————————
 
-[root@localhost ~]# systemctl restart chronyd
+[root@localhost ~]# systemctl restart chronyd —————————————————————————————————重启服务
 ```
+
+<img src="C:/Users/xgz24/AppData/Roaming/Typora/typora-user-images/image-20261016084352425.png" alt="image-20261016084352425" style="zoom:67%;" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### 查看
+
+
+
+在客户端查看自己的chrony服务器
+
+```
+[root@localhost ~]# chronyc sources -v
+```
+
+<img src="C:/Users/xgz24/AppData/Roaming/Typora/typora-user-images/image-20261016092027522.png" alt="image-20261016092027522" style="zoom:67%;" />
+
+**chronyc sources输出分析**
+
+*   M: 这表示信号源的模式。^表示服务器，=表示对等方，# 表示本地连接的参考时钟。
+
+*   S: 此列指示源的状态
+
+    \* chronyd当前同步到的源
+
+    \+ 表示可接受的信号源，与选定的信号源组合在一起
+
+    \- 表示被合并算法排除的可接受源
+
+    ? 表示已失去连接的源
+
+    x 表示chronyd认为是虚假行情的时钟（即，其时间与大多数其他来源不一致）
+
+    ~ 表示时间似乎具有太多可变性的来源
+
+    
+
+*   Name/IP address: 显示服务器源的名称或IP地址
+*   Stratum: 表示源的层级，层级1表示本地连接的参考时钟，第2层表示通过第1层级计算机的时钟实现同步，依此类推
+*   Poll: 表示源轮询频率，以秒为单位，值是基数2的对数，例如值6表示每64秒进行一次测量，chronyd会根据当时的情况自动改变轮询频率
+*   Reach: 表示源的可靠性的锁存值（八进制数值），该锁存值有8位，并在当接收或丢失一次时进行一次更新，值377表示最后八次传输都收到了有效的回复
+*   LastRx: 表示从源收到最近的一次的时间，通常是几秒钟，字母m，h，d或y分别表示分钟，小时，天或年
+*   Last sample: 表示本地时钟与上次测量时源的偏移量，方括号左侧的数字表示原始测量值，方括号右侧表示偏差值，+/-指示器后面的数字表示测量中的误差范围。正偏移表示本地时钟位于源时钟之前
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
