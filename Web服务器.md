@@ -219,7 +219,7 @@ nginx -s reload —————————————————————�
 
 
 
-
+目录
 
 ```
 [root@xgz ~]# cd /etc/nginx
@@ -295,7 +295,7 @@ http { ————————————————————————�
         listen       [::]:80; ——————————————————————————————————————————————监听ipv6的80端口
         server_name  _; ————————————————————————————————————————————————————就是在浏览器中访问的域名或ip，_下划线的作用是用来兜底，当访问的流量所访问的server_name不存在于已建立的server，那么这个_就负责兜底解析
         root         /usr/share/nginx/html; ————————————————————————————————————————————Web服务资源路径，web服务的默认发布目录（URL上面域名后面的路径就是在这个目录下的）
-
+        index		index.html ————————————————————————————————————————————————————————默认发布文件，本质就是在浏览器中输入域名后直接回车会打开的页面
         # Load configuration files for the default server block.
         include /etc/nginx/default.d/*.conf;
     }
@@ -335,6 +335,220 @@ http { ————————————————————————�
 
 
 
+#### 实践
+
+
+
+##### 创建虚拟主机
+
+*   创建虚拟主机
+
+```
+[root@xgz ~]# vim /etc/nginx/nginx.conf
+
+————————————————————————————————————————————————————————————————————————————————————————————————————————
+35     include /etc/nginx/conf.d/*.conf;
+ 36     server{ ——————————————————————————————————————————————————————自己添加的
+ 37         listen 80;
+ 38         server_name 192.168.44.99;
+ 39         root /root/web;
+ 40         index index.html;
+ 41     }
+ 42     server{ ——————————————————————————————————————————————————————自己添加的
+ 43         listen 90;
+ 44         server_name 192.168.44.99;
+ 45         root /root/web1;
+ 46         index haha.html;
+ 47     }
+ 48
+ 49     server {
+ 50         listen       80;
+ 51         listen       [::]:80;
+ 52         server_name  _;
+ 53         root         /usr/share/nginx/html;
+ 54
+ 55         # Load configuration files for the default server block.
+ 56         include /etc/nginx/default.d/*.conf;
+ 57     }
+——————————————————————————————————————————————————————————————————————————————————————————————————————————
+
+
+
+[root@xgz ~]# chmod 755 /root ———————————————————————————————————————在root文件夹下的，nginx用的普通用户身份，需要加权限
+[root@xgz ~]# ll
+总计 4
+-rw-------. 1 root root 974 10月13日 11:21 anaconda-ks.cfg
+drwxr-xr-x  2 root root  24 10月17日 19:05 web
+drwxr-xr-x  2 root root  23 10月17日 19:03 web1
+[root@xgz ~]# tree web
+web
+└── index.html
+
+1 directory, 1 file
+[root@xgz ~]# tree web1
+web1
+└── haha.html
+
+1 directory, 1 file
+[root@xgz ~]# cat web/index.html
+hello world!
+[root@xgz ~]# cat web1/haha.html
+dierge
+```
+
+
+
+<img src="C:/Users/xgz24/AppData/Roaming/Typora/typora-user-images/image-20261017193132954.png" alt="image-20261017193132954" style="zoom:67%;" />
+
+强而有力！强而有力啊！（当然，这东西还只能在区域网里面玩）
+
+
+
+
+
+
+
+##### 带密码
+
+*   创建虚拟主机（带密码）
+
+```
+[root@xgz ~]# yum install httpd-tools -y
+[root@xgz ~]# useradd nailong
+[root@xgz ~]# passwd nailong ——————————————————————————————————————————————————nailong的密码是123
+[root@xgz ~]# htpasswd -c /etc/nginx/passwd nailong ———————————————————————————在/etc/nginx/passwd路径下创建密码文件，nailong这边密码是abc（想创建第二个用户的话不需要-c了）
+
+[root@xgz ~]# vim /etc/nginx/nginx.conf
+——————————————————————————————————————————————————————————————————————————————————————————————————————————————
+ 36     server{
+ 37         listen 80;
+ 38         server_name 192.168.44.99;
+ 39         root /root/web;
+ 40         index index.html;
+ 41         auth_basic on; ————————————————————————————————————————————————————开启密码功能
+ 42         auth_basic_user_file /etc/nginx/passwd; ———————————————————————————此路径为密码本路径，将密码本设置给网站
+ 43     }
+——————————————————————————————————————————————————————————————————————————————————————————————————————————————
+
+[root@xgz ~]# systemctl restart nginx.service
+```
+
+**在这个 Nginx 实验里，`useradd nailong` 完全是多余的**，根本不需要系统里有这个用户
+
+<img src="C:/Users/xgz24/AppData/Roaming/Typora/typora-user-images/image-20261017200617506.png" alt="image-20261017200617506" style="zoom:67%;" />
+
+
+
+核电，轻而易举啊！🤪（密码输入的是abc）
+
+
+
+
+
+##### 用于下载
+
+
+
+```
+[root@xgz nginx]# vim nginx.conf
+
+——————————————————————————————————————————————————————————————————————————————————————————————————————————
+ 50     server{
+ 51         listen 81;
+ 52         server_name  192.168.44.99;
+ 53         root /root/web;
+ 54         autoindex on; ————————————————————————————————————打开网页可以下载/root/web该路径下的文件了
+ 55     }
+
+——————————————————————————————————————————————————————————————————————————————————————————————————————————
+
+[root@xgz nginx]# systemctl restart nginx.service
+```
+
+
+
+
+
+
+
+##### 基于域名
+
+
+
+```
+#1 . 修改windows本地域名解析文件
+C:\Windows\System32\drivers\etc\hosts
+在其中添加自定义的域名解析：
+xxx.xxx.xxx.100 www.xxx.com
+
+2.创建一个子配置文件必须是xxx.conf
+[root@server web]# vim /etc/nginx/conf.d/lyh.conf
+
+——————————————————————————————————————————————————————————————————————————————————————
+1 server{
+2 	listen 80;
+3 	server_name www.xgz.com;
+4 	root /etc;
+5 	autoindex on;
+6 }
+——————————————————————————————————————————————————————————————————————————————————————
+```
+
+
+
+注意：
+
+​	精确匹配：server_name [www.nginx.com](https://www.nginx.com/) ;
+​	左侧匹配：server_name *.[nginx.com](https://nginx.com/) ;
+​	右侧匹配：server_name [www.nginx](https://www.nginx/).* ;
+​	正则匹配：server_name ~^*$ ;
+
+
+
+
+
+
+
+
+
+##### localtion
+
+**`location` 路由匹配**（location和server同时出现root，以location的为准）
+
+
+
+
+
+
+
+location 之后跟着的是资源路径 
+
+​	当 location中属性是 root时，要访问的资源的绝对路径是：root的路径 + url中资源路径
+
+​	当location中属性是alias时，要访问的资源的绝对路径是：ropt的路径 + (url中资源路径 - location 后 资源路径)
+
+
+
+
+
+location匹配规则:
+
+= 精确匹配；location = /image/ {} 可匹配的url→ http://xxx.xxx.xxx.xxx/image/
+
+------------------------------------------------------------------------------------------------------------------------------------
+
+~ 正则匹配，区分大小写；location ~ ^/image/.*可匹配的url→http://xxx.xxx.xxx.xxx/image/... 
+
+*正则匹配，不区分大小写；location ∗/image/.∗可匹配的\*u**r**l\*→*h**ttp\*://\*xxx\*.*xxx\*.*xxx\*.*xxx\*/*ima**g**e\*/... ∗正则匹配，不区分大小写；\*l**oc**a**t**i**o**n\* ∗/\*ima**g**e\*/.∗ 可匹配的url→ http://xxx.xxx.xxx.xxx/IMAGE/...*
+
+------------------------------------------------------------------------------------------------------------------------------------------------
+/xx 前缀匹配 他的优先级低于正则匹配 location /image {} http://xxx.xxx.xxx.xxx/image/...
+
+^~ /xx 前缀匹配，不是正则匹配，他跟上方的前缀匹配唯一的区别是 他的优先级高于正则匹配；
+
+/ 通用匹配，如果没有其它匹配，任何请求都会匹配到 location / {} 可匹配的url→ http://xxx.xxx.xxx.xxx/...
+
+注：匹配优先级：= > ^~ > (~ | ~*) > /xx > /
 
 
 
@@ -346,8 +560,65 @@ http { ————————————————————————�
 
 
 
+##### root和alias
 
 
+
+
+
+场景一：使用 `root` 指令（会多拼一层）
+
+```
+server {
+    listen 81;
+    server_name 192.168.44.99;
+
+    location /image/ {
+        root /data/pics/; 
+    }
+}
+```
+
+
+
+**Nginx 的查找逻辑：**
+`root` 路径 + 完整的 URL 路径
+
+-   `root` 路径 = `/data/pics/`
+-   完整 URL 路径 = `/image/1.jpg`
+-   **最终硬盘找的路径：** `/data/pics/image/1.jpg`
+
+ **结果：** 你必须创建 `/data/pics/image/` 这个目录，把图片放进去。如果服务器上只有 `/data/pics/1.jpg`，就会报 404 找不到。
+
+-   **用户浏览器输入的网址：** `http://192.168.44.99:81/image/1.jpg`
+
+------
+
+场景二：使用 `alias` 指令（精准替换，推荐）
+
+```
+server {
+    listen 81;
+    server_name 192.168.44.99;
+
+    location /image/ {
+        alias /data/pics/; 
+    }
+}
+```
+
+
+
+**Nginx 的查找逻辑：**
+用 `alias` 路径，**直接替换**掉 `location` 匹配到的部分。
+
+-   `location` 匹配了 `/image/`
+-   把 URL 中的 `/image/` 直接换成 `/data/pics/`
+-   **最终硬盘找的路径：** `/data/pics/1.jpg`
+
+ **结果：** 只要服务器上有 `/data/pics/1.jpg`，用户就能访问到。
+
+-   **用户浏览器输入的网址：** `http://192.168.44.99:81/image/1.jpg`
 
 
 
