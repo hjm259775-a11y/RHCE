@@ -32,7 +32,7 @@ NFS涉及到的服务：nfs-server、rpc
 
 
 
-### 实践 nfs
+### nfs基础部署
 
 服务器
 
@@ -74,9 +74,6 @@ Export list for 192.168.44.99:
 [root@localhost /]# echo "beifakonghaoguoli buruxiaofangdongwu" >> /xiaoweiyan/youhebugan.txt
 -bash: /xiaoweiyan/youhebugan.txt: 权限不够
 [root@localhost /]# echo "beifakonghaoguoli buruxiaofangdongwu" >> /xiaoweiyan/youhebugan.txt————在此文件中追加，服务器那边的/weiyan/youhebugan.txt也会跟着修改
-
-
-
 ```
 
 
@@ -149,7 +146,7 @@ Export list for 192.168.44.99:
 
 ​	配置文件/etc/auto.master
 
-​		这个配置文件用于设定目定义的自动挂在目录
+​		这个配置文件用于设定目定义的自动挂载目录
 
 
 
@@ -230,17 +227,62 @@ net
 
 
 ```
+[root@localhost /]# vim /etc/auto.master ————————————————————————设定目定义的自动挂载目录
+
+————————————————————————————————————————————————————————————————————————————————————————————————————————————
+ 13 /net    -hosts
+ 14 /zhangqiying /etc/dianhua.d —————————————————————————————————自定义的挂载点是/zhangqiying关于挂载详细设定在dianhua.d中
+————————————————————————————————————————————————————————————————————————————————————————————————————————————
+
+[root@localhost /]# vim /etc/dianhua.d ——————————————————————————创建自定义配置文件
+————————————————————————————————————————————————————————————————————————————————————————————————————————————
+ziwei 192.168.44.99:/weiyan —————————————————————————————————————共享目录就是ziwei，后面是要共享的目录
+————————————————————————————————————————————————————————————————————————————————————————————————————————————
+
+[root@localhost etc]# systemctl restart autofs.service
+
+[root@localhost /]# cd zhangqiying/
+[root@localhost zhangqiying]# cd ziwei
+[root@localhost ziwei]# ll ——————————————————————————————————————可以看到，成功了
+总计 4
+-rwxrwxrwx 1 root root 72 10月18日 20:16 youhebugan.txt
 ```
 
 
 
 
 
+### 光盘挂载
 
 
 
 
 
+修改autofs主配置文件
+
+```
+# 设计本地自动挂载目录路径：/media/cdrom
+
+# 定位第7行，输入本地挂载路径的父目录和自配置文件
+[root@server ~]# vim /etc/auto.master
+/media  /etc/iso.aa
+```
+
+
+
+编写autofs子配置文件
+
+```
+[root@server ~]# vim /etc/iso.aa
+cdrom  -fstype=iso9660,ro,nosuid,nodev  :/dev/sr0  # 冒号前有空格
+
+# 注意cdrom为挂载路径/media/cdrom的子目录
+# -ftype:为文件系统格式
+# iso9660:为光盘设备格式
+# ro:以只读模式挂载文件系统
+# nodev:不解析文件系统上的块特殊设备
+# nosuid:禁止suid操作和设定sgid位(SUID 是 Set User ID, SGID 是 Set Group ID的意思)
+```
 
 
 
