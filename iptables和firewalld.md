@@ -518,11 +518,37 @@ firewall-cmd [--zone=<区域>] --query-rich-rule='<规则>'
 
 
 
-*   示例
+*   示例（允许（accept）来自 IP 地址 172.25.254.200 的流量，访问本机的 22 端口（SSH），使用的协议是 TCP）
 
 ```
 firewall-cmd --add-rich-rule='rule family="ipv4" source address="172.25.254.200" port port="22" protocol="tcp" accept'
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
