@@ -300,6 +300,26 @@ systemctl restart nginx
 
 
 
+示例：
+
+```
+[root@server ~]# vim /etc/ssh/sshd_config  # 修改ssh的端口号为2222
+Port 2222
+
+[root@server ~]# systemctl restart sshd   # 重启服务失败
+Job for sshd.service failed because the control process exited with error code.
+See "systemctl status sshd.service" and "journalctl -xeu sshd.service" for details.
+
+[root@server ~]# semanage port -l | grep ssh_port_t  # 查看ssh的端口号策略
+ssh_port_t                     tcp      22
+[root@server ~]# semanage port -a -t ssh_port_t -p tcp 2222  # 策略中添加新端口
+[root@server ~]# semanage port -l | grep ssh_port_t
+ssh_port_t                     tcp      2222, 22
+[root@server ~]# systemctl restart sshd
+
+# win11中使用   ssh  root@192.168.88.130:2222  进行访问
+```
+
 
 
 
