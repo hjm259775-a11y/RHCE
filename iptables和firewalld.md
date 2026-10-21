@@ -360,7 +360,7 @@ ACCEPT     tcp  --  0.0.0.0/0            0.0.0.0/0            tcp dpt:80
 
 
 
-firewall-cmd的子命令虽然有102个 但是无非就是
+**firewall-cmd**的子命令虽然有102个 但是无非就是
 
 
 
@@ -435,7 +435,37 @@ firewall-cmd --zone=trusted --remove-source=172.25.254.2 ———————�
 
 
 
+ **小练习**
 
+**7.** 将默认区域设置为 `work` 区域。
+
+**8.** 在默认区域中放行 `http` 服务的流量。
+
+**9.** 在默认区域中放行 `8080/tcp` 端口的流量。
+
+**12.** 使默认区域不再允许 `ssh` 服务的流量
+
+```
+[root@xgz ~]# firewall-cmd --set-default-zone=work
+
+[root@xgz ~]# firewall-cmd  --add-source=http
+
+[root@xgz ~]# firewall-cmd --list-all
+
+[root@xgz ~]# firewall-cmd --remove-service=ssh
+```
+
+
+
+
+
+
+
+
+
+
+
+#### 富规则
 
 **富规则**：它的主要作用是精细化控制，如对指定ip能访问的端、服务、icmp进具体控制
 
