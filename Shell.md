@@ -1431,14 +1431,6 @@ done
 
 
 
-
-
-#### 不带列表的for循环
-
-
-
-
-
 **C语言风格：**（我喜欢）
 
 ```
@@ -1447,6 +1439,413 @@ do
     echo $i
 done
 ```
+
+
+
+
+
+
+
+
+
+
+
+**小练习：**(判断本网段的所有IP地址是否在线)
+
+```
+#!/bin/bash
+
+for ip in 192.168.44.{1..255}
+do
+	if ping -c 1 $ip &> /dev/null;then ——————————将标准输出和标准错误输出一起重定向到指定的地方。0走then，非0走else
+		echo "$ip zai"
+	else
+		echo "$ip buzai"
+	fi
+done
+```
+
+
+
+
+
+**小练习：**（输入一个绝对路径，输出里面所有目录）
+
+```
+#!/bin/bash
+
+read -p "请输入一个绝对路径：" juedui
+for weizhi in $(ls $juedui)
+do
+        if [[ -d $juedui/$weizhi ]];then
+                echo "$weizhi"
+        fi
+done
+```
+
+
+
+
+
+
+
+#### 不带列表的for循环
+
+
+
+```
+————————————————————————————————————————————————————————————————————————————————
+echo "以下是遍历 "'$*'"的结果："
+for item in $* ————————————————————————————————————$*变成字符串
+do
+    echo $item
+done
+
+
+
+echo "以下是遍历 "'$@'"的结果："
+for item in $@ ————————————————————————————————————$@变成数组
+do
+    echo $item
+done
+
+————————————————————————————————————————————————————————————————————————————————
+[root@server ~]# sh for4.sh 1  "2 3" 4
+以下是遍历 $*的结果：
+1 2 3 4
+以下是遍历 $@的结果：
+1
+2 3
+4
+```
+
+
+
+
+
+在 for循环中，**变量如果没有双引号**，shell在解析时，首先会用空格作为参数分割符对变量进行切割
+
+如果遇到通配符会展开(* ? {} [])
+
+`for i in * `
+
+*会被展开为 for1.sh for2.sh ....
+
+`for i in "*" `
+
+*会被当做一个文件名处理
+
+**给变量加双引号**相当于给变量做了防护避免变量进行切割或者通配符展开
+
+
+
+```
+for item
+do
+    echo $item
+done
+
+以上写法等价于
+for item in $@
+do
+    echo $item
+done
+```
+
+
+
+
+
+
+
+**小练习：**（批量创建用户，已存在就输出“用户已存在”，不存在就创建用户并输出“用户已创建”）
+
+```
+read -p "请输入要批量创建的用户名:" name
+for user in ${name}{1..10}
+do
+    if id $user &> /dev/null
+    then
+        echo "$user已存在"
+    else
+        useradd $user
+        echo "$user已创建"
+    fi
+done
+```
+
+
+
+
+
+
+
+### while
+
+
+
+格式：
+
+```
+while 循环条件 ——————————————————————————————循环条件为真就继续运行，为假就停止
+do
+	循环的代码片段
+done
+```
+
+
+
+
+
+
+
+```
+使用cat读取文件，通过管道符进入while循环处理
+
+cat 文件名 | while read line
+do
+    statement1
+    statement1
+    ......
+done
+```
+
+
+
+
+
+```
+price=$(($RANDOM))
+
+# break关键字：当break关键字运行时，循环直接结束
+# continue关键字：当continue运行时，本次循环结束进入下一次循环
+
+while true
+do
+    read -p "请输入你的猜测:" u_price
+    if [[ $u_price -eq $price ]];then
+        echo "恭喜你，你的猜测是正确的:$price"
+        break
+    elif [[ $u_price -gt $price ]];then
+        echo "猜大了"
+    else
+        echo "猜小了"
+    fi
+done
+```
+
+
+
+
+
+**小练习：**（打印九九乘法表）
+
+```
+for i in {1..9}
+do
+    for j in $(seq 1 $i)
+    do
+        echo -n -e "${i}x${j}=$((i*j))\t"
+    done
+    echo ""
+done
+```
+
+
+
+
+
+
+
+### until
+
+
+
+语法结构和while完全相同
+
+但是while条件为真才能继续循环
+
+而until必须条件为假才继续循环
+
+
+
+
+
+
+
+### select
+
+
+
+select循环语句的主要功能是创建菜单，在执行带有select循环语句脚本时，输出会按照数字顺序的列表显示一个菜单，并显示提示符（默认是#？），同时等待用户输入数字选择
+
+它专门用来做**交互式菜单**。它会自动在屏幕上列出一个带数字编号的列表，然后停下来，**傻傻地等用户输入一个数字**，用户选哪个，它就执行哪个。
+
+
+
+格式：（写select时，上面的echo就会成为循环提示语，会不断输出）
+
+```
+和for一样
+```
+
+
+
+
+
+**小练习：**（让用户自己选择下载哪个）
+
+```
+select item in "NFS" "DNS" "Nginx"
+do
+    if [[ $item -eq "NFS" ]];
+    then
+        dnf install nfs-utils -y
+        systemctl enable --now nfs-server
+    elif [[ $item -eq "DNS" ]]
+    then
+        dnf install bind -y
+        systemctl enable --now named
+    elif [[ $item -eq "Nginx" ]]
+    then
+        dnf install nginx -y
+        systemctl enable --now nginx
+    fi
+done
+```
+
+
+
+
+
+### 循环控制
+
+
+
+*   break：是立即跳出某个循环结构。break语句可以用在for、while或者until等循环语句的循环体中
+
+*   continue：作用不是退出循环体。而是跳过当前循环体中该语句后面的语句，重新从循环语句开始的位置执行
+
+
+
+
+
+
+
+## 函数
+
+
+
+格式：
+
+```
+function 函数名() {
+    指令
+    return
+}
+
+function 函数名 {
+    指令
+    return
+}
+
+函数名() {
+    指令
+    return
+}
+```
+
+
+
+
+
+
+
+举例：（安装函数）
+
+```
+install_enable(){
+    dnf install $1
+    systemctl enable --now $2
+}
+
+install_enable nfs-utils nfs-server
+```
+
+
+
+
+
+举例：（两数相加）
+
+```
+add(){
+    if [[ -z $1 || -z $2 ]];then
+        echo ""
+        return 1
+    else
+        echo $(($1 + $2))
+        return 0
+    fi
+}
+
+result=$(add $1 $2)
+echo "函数的状态码:$?  函数的运行结果是:$result"
+```
+
+
+
+
+
+**遍历数组**
+
+```
+#!/bin/bash
+
+IP=(192.168.1.1 192.168.1.2 192.168.1.3)
+for ((i=0;i<${#IP[*]};i++)); do
+echo ${IP[$i]}
+done
+```
+
+
+
+
+
+
+
+
+
+## 三文本
+
+
+
+
+
+### grep
+
+
+
+grep是linux中一种强大的文件搜索过滤工具，可以按照正则表达式检索文件内容，并把匹配的结果显示到屏幕上（匹配的内容会标红）
+
+
+
+|  参数   | 功能                                                         |
+| :-----: | :----------------------------------------------------------- |
+|   -c    | 仅显示查找到的行数（统计行）                                 |
+|   -i    | 忽略大小写                                                   |
+|   -n    | 显示行号                                                     |
+|   -v    | 反向选择（取反）                                             |
+|   -r    | 递归搜索文件内容（当前目录递归查找子目录，子文件）           |
+|   -w    | 按完整单词匹配                                               |
+|   -l    | 只列出包含匹配内容的文件名，而不显示具体匹配的那一行内容（加-r就是把整个目录里有关键字的文件输出） |
+|   -o    | 只显示匹配到的内容                                           |
+|   -q    | 不在stdoutstderr中输出内容（目的是只要状态码)                |
+|   -E    | 支持扩展正则                                                 |
+|   -P    | 支持兼容正则                                                 |
+| -A 数字 | 匹配行及下 n 行（n就是左边写的数字）                         |
+| -B 数字 | 匹配行及上 n 行                                              |
+| -C 数字 | 匹配行及上下 n 行                                            |
 
 
 
